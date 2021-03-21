@@ -4,6 +4,14 @@ import random
 
 import numpy as np
 
+import collections
+
+
+def flatten(x):
+    if isinstance(x, collections.Iterable):
+        return [a for i in x for a in flatten(i)]
+    else:
+        return [x]
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
@@ -46,13 +54,14 @@ def act(self, game_state: dict) -> str:
     if self.train and random.random() < random_prob:
         self.logger.debug("Choosing action purely at random.")
         # 80%: walk in any direction. 10% wait. 10% bomb.
-        return np.random.choice(ACTIONS, p=[.2, .2, .2, .2, .1, .1])
-
+        return np.random.choice(ACTIONS, p=[.2, .2, .2, .2, .19, .01])
+    # for i in ["UP","Down","lEFT"]   
+    #TEMPREWARTD =self.model.predIct(game_state,I)
     self.logger.debug("Querying model for action.")
     return np.random.choice(ACTIONS, p=self.model)
 
 
-def state_to_features(game_state: dict) -> np.array:
+def state_to_features(game_state: dict):
     """
     *This is not a required function, but an idea to structure your code.*
 
@@ -78,16 +87,37 @@ def state_to_features(game_state: dict) -> np.array:
     channels.append(game_state['bombs'])
     channels.append(game_state['explosion_map'])
     channels.append(game_state['coins'])
-    channels.append(game_state['self'])
-    channels.append(game_state['others'])
+    channels.append(game_state['self'][1::])
+    channels.append(game_state['others'][1::])
     #print(channels,"fuck")
+    """
+    flat_list=[]
+    for x in channels:
+        if isinstance(x,int):
+            flat_list.append(x)
+            continue
+        for y in x:
+            flat_list.append(y)
+    flatten()   
+    """     
     f = open("debug.txt", "a")
-    f.write(str(channels[2]))
-    f.write("bombs")
-    f.write(str(channels[3]))
-    f.write("explonationmap")
-    f.write(str(channels[4]))
+    f.write("Round Map")
+    f.write("\n"+str(channels[2]))
+    f.write(" \n bombs")
+    f.write("\n"+str(channels[3]))
+    f.write(" \n explonationmap")
+    f.write("\n"+str(channels[4]))
+    f.write(" \n coins")
+    f.write("\n"+str(channels[5]))
+    f.write(" \n my agent \n")
+    f.write("\n"+str(channels[6]))
+    f.write(" \n others \n")
+    f.write("\n"+str(channels[7]))
+    f.write(" \n flat list \n")
+    channels=flatten(channels)
+    f.write("\n"+str(channels))
     f.close
+    #print(channels)
     # concatenate them as a feature tensor (they must have the same shape), ...
     #stacked_channels = np.stack(channels)
     # and return them as a vector
